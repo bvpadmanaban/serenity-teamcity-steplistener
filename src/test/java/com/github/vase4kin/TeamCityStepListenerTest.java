@@ -1,10 +1,20 @@
 package com.github.vase4kin;
 
-import junit.framework.TestCase;
-import net.thucydides.core.model.*;
-import net.thucydides.core.model.stacktrace.FailureCause;
-import net.thucydides.core.steps.ExecutedStepDescription;
-import net.thucydides.core.steps.StepFailure;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.util.HashMap;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,13 +22,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import junit.framework.TestCase;
+import net.thucydides.core.model.DataTable;
+import net.thucydides.core.model.Story;
+import net.thucydides.core.model.TestOutcome;
+import net.thucydides.core.model.TestStep;
+import net.thucydides.core.steps.ExecutedStepDescription;
+import net.thucydides.core.steps.StepFailure;
+import net.thucydides.core.steps.TestFailureCause;
 
 /**
  * Test class to test implemented team city thucydides step listener
@@ -32,7 +43,7 @@ public class TeamCityStepListenerTest {
     private DataTable dataTable;
 
     @Mock
-    private FailureCause failureCause;
+    private TestFailureCause failureCause;
 
     private TeamCityStepListener teamCityStepListener;
 
@@ -47,7 +58,7 @@ public class TeamCityStepListenerTest {
         initMocks(this);
         teamCityStepListener = spy(new TeamCityStepListener(logger));
         doReturn("StackTrace").when(teamCityStepListener).getStackTrace(any(Throwable.class));
-        when(failureCause.getMessage()).thenReturn("the test is failed!");
+        when(failureCause.getTestFailureMessage()).thenReturn("the test is failed!");
     }
 
     @After
@@ -79,7 +90,7 @@ public class TeamCityStepListenerTest {
         TestOutcome testOutcome = new TestOutcome("failedScenario");
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getFailureTestStepWithAssertionError("Failed scenario step"));
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -124,7 +135,7 @@ public class TeamCityStepListenerTest {
         TestStep testStep = TestStepFactory.getErrorTestStep("Failed scenario step");
         testStep.addChildStep(TestStepFactory.getErrorTestStepWithThrowable("Failed scenario child step"));
         testOutcome.recordStep(testStep);
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -148,7 +159,7 @@ public class TeamCityStepListenerTest {
         TestStep testStep = TestStepFactory.getFailureTestStep("Failed scenario step");
         testStep.addChildStep(TestStepFactory.getFailureTestStepWithAssertionError("Failed scenario child step"));
         testOutcome.recordStep(testStep);
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -170,7 +181,7 @@ public class TeamCityStepListenerTest {
         TestOutcome testOutcome = new TestOutcome("failedScenario");
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getErrorTestStepWithThrowable("Failed scenario step"));
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -252,7 +263,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedSuccessfulScenarioWithGivenStoriesInStory() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -281,7 +297,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedFailedScenario() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -310,7 +331,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedErrorScenario() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -339,7 +365,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedSkippedScenario() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -368,7 +399,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedPendingScenario() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -397,7 +433,12 @@ public class TeamCityStepListenerTest {
     @Test
     public void testParametrisedIgnoredScenario() {
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -430,10 +471,10 @@ public class TeamCityStepListenerTest {
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getFailureTestStepWithAssertionError("\\|'\n\r\\[\\][]"));
 
-        FailureCause failureCause = mock(FailureCause.class);
-        when(failureCause.getMessage()).thenReturn("\\|'\n\r\\[\\][]");
+        TestFailureCause failureCause = mock(TestFailureCause.class);
+        when(failureCause.getTestFailureMessage()).thenReturn("\\|'\n\r\\[\\][]");
 
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -456,14 +497,14 @@ public class TeamCityStepListenerTest {
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getErrorTestStepWithThrowable("Failed scenario step", new NullPointerException()));
 
-        FailureCause failureCause = mock(FailureCause.class);
+        TestFailureCause failureCause = mock(TestFailureCause.class);
 
         NullPointerException nullPointerException = new NullPointerException();
-        when(failureCause.getStackTrace()).thenReturn(null);
-        when(failureCause.getMessage()).thenReturn(null);
-        when(failureCause.getErrorType()).thenReturn(nullPointerException.getClass().getName());
+        when(failureCause.getRootCause()).thenReturn(null);
+        when(failureCause.getTestFailureMessage()).thenReturn(null);
+        when(failureCause.getTestFailureClassname()).thenReturn(nullPointerException.getClass().getName());
 
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -580,7 +621,12 @@ public class TeamCityStepListenerTest {
         // and each children step do not have test description started with '[', example: [1] {value=exampleTableValue}
         // for code coverage
 
-        teamCityStepListener.exampleStarted(new HashMap<String, String>() {{
+        teamCityStepListener.exampleStarted(new HashMap<String, String>() {/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		{
             put("value", "exampleTableValue");
         }});
 
@@ -604,7 +650,7 @@ public class TeamCityStepListenerTest {
         TestOutcome testOutcome = new TestOutcome("failedScenario");
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getFailureTestStepWithAssertionError("Failed scenario step"));
-        testOutcome.setTestFailureCause(null);
+        testOutcome.setFlakyTestFailureCause(null);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -633,7 +679,7 @@ public class TeamCityStepListenerTest {
         doReturn(false).when(testStep).isFailure();
 
         testOutcome.recordStep(testStep);
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -661,7 +707,7 @@ public class TeamCityStepListenerTest {
         doReturn(null).when(testStep).getException();
 
         testOutcome.recordStep(testStep);
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 
@@ -830,7 +876,7 @@ public class TeamCityStepListenerTest {
         TestOutcome testOutcome = new TestOutcome("failedScenario");
         testOutcome.setUserStory(STORY);
         testOutcome.recordStep(TestStepFactory.getFailureTestStepWithAssertionError("Failed scenario step"));
-        testOutcome.setTestFailureCause(failureCause);
+        testOutcome.setFlakyTestFailureCause(failureCause);
 
         teamCityStepListener.testFinished(testOutcome);
 

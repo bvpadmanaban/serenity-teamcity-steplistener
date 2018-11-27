@@ -5,6 +5,7 @@ import net.thucydides.core.model.stacktrace.FailureCause;
 import net.thucydides.core.steps.ExecutedStepDescription;
 import net.thucydides.core.steps.StepFailure;
 import net.thucydides.core.steps.StepListener;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,8 @@ public class TeamCityStepListener implements StepListener {
 
     private static final String EMPTY_STRING = "";
 
-    private static final HashMap<String, String> ESCAPE_CHARS = new LinkedHashMap<String, String>() {
+    @SuppressWarnings("serial")
+	private static final HashMap<String, String> ESCAPE_CHARS = new LinkedHashMap<String, String>() {
         {
             put("\\|", "||");
             put("\'", "|\'");
@@ -362,4 +364,22 @@ public class TeamCityStepListener implements StepListener {
     @Override
     public void assumptionViolated(String message) {
     }
+
+	@Override
+	public void testStarted(String description, String id) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void testIsManual() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void testRunFinished() {
+		// TODO Auto-generated method stub
+		
+	}
 }
